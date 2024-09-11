@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <title>Operação</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main>
+    <h2>Olá, {{ user.username }}!</h2>
+    <h4>Bem-vindo ao TREE BANk!</h4>
+
+    <p>Escolha a operação desejada</p>
+    <select id="operacao">
+        <option value="depositar">Depositar</option>
+        <option value="sacar">Sacar</option>
+        <option value="exibir_extrato">Extrato</option>
+    </select>
+    <button onclick="executarOperacao()">Executar</button>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
