@@ -1,0 +1,132 @@
+/**
+ * index.js — cadastro and login logic for TREEBANk
+ */
+
+'use strict';
+
+// ── Cadastro ───────────────────────────────────────────────────────────────
+
+const cadastroForm = document.getElementById('cadastroForm');
+const btnCadastro  = document.getElementById('btn-cadastro');
+
+// Apply CPF mask
+maskCpf(document.getElementById('cpf'));
+
+cadastroForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearMsg('cadastro-msg');
+  clearFieldErrors();
+
+  const nome           = document.getElementById('nome').value.trim();
+  const email          = document.getElementById('email').value.trim();
+  const cpf            = document.getElementById('cpf').value.trim();
+  const dataNascimento = document.getElementById('dataNascimento').value;
+  const senha          = document.getElementById('senha').value;
+
+  // ── Client-side validation ─────────────────────────────────────────
+  let hasError = false;
+
+  if (!nome) {
+    setFieldError('err-nome', 'Informe seu nome completo.');
+    hasError = true;
+  }
+
+  if (!validarEmail(email)) {
+    setFieldError('err-email', 'Informe um e-mail válido.');
+    hasError = true;
+  }
+
+  if (!validarCPF(cpf)) {
+    setFieldError('err-cpf', 'CPF inválido. Verifique o número informado.');
+    hasError = true;
+  }
+
+  if (!dataNascimento) {
+    setFieldError('err-data', 'Informe sua data de nascimento.');
+    hasError = true;
+  }
+
+  if (senha.length < 6) {
+    setFieldError('err-senha', 'A senha deve ter pelo menos 6 caracteres.');
+    hasError = true;
+  }
+
+  if (hasError) return;
+
+  // ── Submit ─────────────────────────────────────────────────────────
+  setBtnLoading(btnCadastro, true);
+  try {
+    const response = await fetch('/api/cadastro', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ nome, email, cpf, dataNascimento, senha }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      showMsg('cadastro-msg', data.message, 'success');
+      setTimeout(() => { window.location.href = '/operator'; }, 1000);
+    } else {
+      showMsg('cadastro-msg', data.erro || 'Erro ao cadastrar.', 'error');
+    }
+  } catch (err) {
+    showMsg('cadastro-msg', 'Erro de conexão. Tente novamente.', 'error');
+    console.error('Cadastro error:', err);
+  } finally {
+    setBtnLoading(btnCadastro, false);
+  }
+});
+
+// ── Login ──────────────────────────────────────────────────────────────────
+
+const loginForm = document.getElementById('loginForm');
+const btnLogin  = document.getElementById('btn-login');
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearMsg('login-msg');
+
+  const email = document.getElementById('login-email').value.trim();
+  const senha = document.getElementById('login-senha').value;
+
+  if (!validarEmail(email) || !senha) {
+    showMsg('login-msg', 'Preencha e-mail e senha corretamente.', 'error');
+    return;
+  }
+
+  setBtnLoading(btnLogin, true);
+  try {
+    const response = await fetch('/api/login', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, senha }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      showMsg('login-msg', data.message, 'success');
+      setTimeout(() => { window.location.href = '/operator'; }, 800);
+    } else {
+      showMsg('login-msg', data.erro || 'Credenciais inválidas.', 'error');
+    }
+  } catch (err) {
+    showMsg('login-msg', 'Erro de conexão. Tente novamente.', 'error');
+    console.error('Login error:', err);
+  } finally {
+    setBtnLoading(btnLogin, false);
+  }
+});
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function setFieldError(id, msg) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = msg;
+}
+
+function clearFieldErrors() {
+  ['err-nome', 'err-email', 'err-cpf', 'err-data', 'err-senha']
+    .forEach(id => setFieldError(id, ''));
+}
